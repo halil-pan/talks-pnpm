@@ -82,19 +82,20 @@ h1 {
 }
 </style>
 
-<!--
-是啥发的
--->
-
 ---
 
 # 依赖黑洞
 
-npm 早期存在依赖黑洞问题：相同包的相同版本，作为二次依赖时也会被安装多次，大量重复依赖浪费磁盘空间，并且无法实现共享实例（一些需要单例运行的包）。
+npm 早期存在依赖黑洞问题：即使是相同包的相同版本，作为不同包的依赖时也会被安装多次
+
+- 大量重复文件浪费磁盘空间
+- 并且无法实现共享实例（一些需要单例运行的包）。
 
 <div class="flex justify-center">
   <img class="w-140 rounded" src="https://d1dwq032kyr03c.cloudfront.net/upload/images/20191010/20111380t9EkQTYpmS.jpg" />
 </div>
+
+<!-- 经常会听到议论依赖黑洞，依赖黑洞是一个问题吗？单论“黑洞”层级过深，其实不算是个问题，本质上对于一个一般规模的项目来说，其依赖结构树就是一个层级很深，只是直接将逻辑树映射到物理存储时发现有内存占用大和无法实现单例 -->
 
 ---
 layout: image-left
@@ -153,7 +154,7 @@ Node.js 有一套模块的查找读取规则：[require.resolve](https://nodejs.
 
 <v-click>
 
-所以 yarn 的解决方式就是将会依赖提升至最上层（node_modules 扁平化）。
+yarn 的解决思路就是基于此机制，将依赖提升至最外层（node_modules 扁平化）。
 
 </v-click>
 
@@ -169,12 +170,14 @@ Node.js 有一套模块的查找读取规则：[require.resolve](https://nodejs.
 
 # 解决了但又没完全解决
 
-npm 的 [SemVer](https://semver.org/lang/zh-CN/) 规范，对于大版本的更新意味着向下不兼容，所以相同包的不同版本，也只能提升一个到最外层，另一个版本依然存在重复安装的问题。然而到底提升哪个版本，是存在不确定性的。
+npm 的 [SemVer](https://semver.org/lang/zh-CN/) 规范，对于大版本的更新意味着向下不兼容。
+
+对于相同包的不同版本，也只能提升一个到最外层，另一个版本依然存在重复安装的问题。然而到底提升哪个版本，是存在不确定性的。
 
 <v-click>
 
 <div class="flex justify-center">
-  <img class="w-100 rounded" src="https://s1.ax1x.com/2022/07/18/joJw1P.png" />
+  <img class="w-90 rounded" src="https://s1.ax1x.com/2022/07/18/joJw1P.png" />
 </div>
 
 </v-click>
@@ -185,6 +188,13 @@ npm 的 [SemVer](https://semver.org/lang/zh-CN/) 规范，对于大版本的更�
 
 </v-click>
 
+<v-click>
+
+yarn 解决的问题只有避免大多数包重复安装的问题，
+
+</v-click>
+
+<!-- yarn 并没有直接去解决真正的问题，依赖层级不是问题本质。回顾一下真正的问题是啥 -->
 
 ---
 
@@ -366,15 +376,21 @@ package.json 中通过 packageManager 声明项目指定的包管理器，比如
 
 # 总结
 
-没有理由不使用 pnpm
+<br>
+
+<v-click>
+
+yarn 的思路就是很骚，先是把 node_modules 拍平了，后来又提出 PnP。对于现有方案来说改动都非常激进。不可避免带来兼容问题和改造成本。
+
+</v-click>
 
 <v-clicks>
 
-1. 当前最快的依赖安装速度
-2. 节省磁盘空间
-3. 解决 doppelganger 和 phantom 的同时有完全向前兼容
+pnpm 思路就很“本分”，也是因为其团队的底层技术过硬，才可以保留 node_modules 依赖层级结构同时通过软硬链接解决问题。
 
 </v-clicks>
+
+<!-- 通过底层技术，在中间层解决上层的应用的问题，应用层可以完全无感知。 -->
 
 ---
 
@@ -384,8 +400,20 @@ package.json 中通过 packageManager 声明项目指定的包管理器，比如
 - [Flat node_modules is not the only way -- Zoltan Kochan](https://pnpm.io/blog/2020/05/27/flat-node-modules-is-not-the-only-way)
 - [关于现代包管理器的深度思考——为什么现在我更推荐 pnpm 而不是 npm/yarn?](https://juejin.cn/post/6932046455733485575)
 - [JavaScript 包管理器简史](https://zhuanlan.zhihu.com/p/451025256)
-- [yarn issues: Looking for brilliant yarn member who has first-hand knowledge of prior issues with symlinking modules](https://github.com/yarnpkg/yarn/issues/1761)
+
+<v-click>
+
+很有意思的一个 yarn 的 issue，讨论通过软链接链接模块
+- [Looking for brilliant yarn member who has first-hand knowledge of prior issues with symlinking modules](https://github.com/yarnpkg/yarn/issues/1761)
+
+</v-click>
+
+<v-click>
+
+阿里也提出了一个 tnpm，用了 FUSE 黑科技
 - [深入浅出 tnpm rapid 模式 - 如何比 pnpm 快 10 秒](https://zhuanlan.zhihu.com/p/455809528)
+
+</v-click>
 
 ---
 layout: cover
